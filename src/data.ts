@@ -23,8 +23,8 @@ export const BOARDS: Board[] = [
         ],
         keyFacts: [
           'Global service, no region selection',
-          'Root user: avoid daily use',
-          'Principle of Least Privilege'
+          'Principle of Least Privilege',
+          'Shared Responsibility: Auth is AWS, Policies are User'
         ]
       },
       {
@@ -34,8 +34,8 @@ export const BOARDS: Board[] = [
         whatItIs: 'Key Management Service. Create and control cryptographic keys.',
         useWhen: [
           'Encrypting data at rest (S3, EBS, RDS)',
-          'Encrypting small data (<4KB) directly',
-          'Managing Master Keys (CMKs)'
+          'Managing Master Keys (CMKs)',
+          'FIPS 140-2 Level 3 compliance (CloudHSM)'
         ],
         avoidWhen: [
           'SSL/TLS certificate management -> use ACM',
@@ -43,13 +43,12 @@ export const BOARDS: Board[] = [
         ],
         keyFacts: [
           'Regional service',
-          'FIPS 140-2 Level 2 (mostly)',
-          'Integrated with most AWS services'
+          'Symmetric keys stay within KMS'
         ]
       },
       {
         id: 'waf',
-        name: 'WAF',
+        name: 'AWS WAF',
         category: 'Security',
         whatItIs: 'Web Application Firewall. Protect applications from common web exploits.',
         useWhen: [
@@ -67,84 +66,80 @@ export const BOARDS: Board[] = [
         ]
       },
       {
-        id: 'secrets-manager',
-        name: 'Secrets Manager',
+        id: 'shield',
+        name: 'AWS Shield',
         category: 'Security',
-        whatItIs: 'Manage, rotate, and retrieve database credentials and API keys.',
+        whatItIs: 'Managed Distributed Denial of Service (DDoS) protection.',
         useWhen: [
-          'Rotating RDS passwords automatically',
-          'Protecting sensitive configuration strings',
-          'Cross-account secret access'
+          'Always-on protection (Standard)',
+          'Advanced mitigation & cost protection (Advanced)',
+          'Protecting Route 53 & CloudFront'
         ],
         avoidWhen: [
-          'Non-sensitive config -> use Parameter Store (Free/Low cost)',
-          'Encryption keys -> use KMS'
+          'Application code vulnerabilities -> use WAF'
         ],
         keyFacts: [
-          'Cost: $0.40 per secret/month',
-          'Automatic rotation via Lambda'
+          'Standard is free for all customers',
+          'Advanced provides 24/7 Shield Response Team'
         ]
       },
       {
-        id: 'guardduty',
-        name: 'GuardDuty',
+        id: 'inspector',
+        name: 'Amazon Inspector',
         category: 'Security',
-         whatItIs: 'Intelligent threat detection using machine learning.',
+        whatItIs: 'Automated vulnerability management for EC2 and ECR.',
         useWhen: [
-          'Monitoring for malicious activity (crypto mining, unauthorized access)',
-          'Analyzing VPC Flow Logs, DNS logs, and CloudTrail'
+          'Scanning EC2 instances for software vulnerabilities',
+          'Checking for unintended network exposure',
+          'Scanning container images'
         ],
         avoidWhen: [
-          'Actually blocking traffic -> use WAF/Shield',
-          'Vulnerability scanning -> use Inspector'
+          'Threat detection in logs -> use GuardDuty',
+          'PII discovery -> use Macie'
         ],
         keyFacts: [
-          'One-click enable',
-          'No agent required'
+          'Agent-based (older) or Agentless (newer)',
+          'Integrated with Security Hub'
         ]
       },
       {
-        id: 'vpc-security',
-        name: 'VPC Security',
-        category: 'Networking',
-        whatItIs: 'Network isolation using Security Groups and NACLs.',
+        id: 'macie',
+        name: 'Amazon Macie',
+        category: 'Security',
+        whatItIs: 'Fully managed data security & privacy service using ML.',
         useWhen: [
-          'Instance-level stateful firewall (SG)',
-          'Subnet-level stateless firewall (NACL)',
-          'Private/Public subnet isolation'
+          'Discovering PII (emails, SSNs) in S3',
+          'Monitoring S3 bucket security posture',
+          'Compliance auditing'
         ],
         avoidWhen: [
-          'L7 Application filtering -> use WAF',
-          'DDOS protection -> use Shield'
+          'Scanning server vulnerabilities -> use Inspector'
         ],
         keyFacts: [
-          'SGs: Allow rules only, stateful',
-          'NACLs: Allow/Deny rules, stateless'
+          'Only works with Amazon S3 data'
         ]
       },
       {
-        id: 'iam-identity-center',
-        name: 'IAM Identity Center',
+        id: 'orgs',
+        name: 'AWS Organizations',
         category: 'Security',
-        whatItIs: 'Successor to AWS SSO. Centrally manage SSO access to AWS accounts.',
+        whatItIs: 'Central governance and management for multiple accounts.',
         useWhen: [
-          'Managing multi-account access',
-          'Integration with external IdP (Active Directory, Okta)',
-          'Providing a single login portal for users'
+          'Consolidated billing',
+          'Applying Service Control Policies (SCPs)',
+          'Automating account creation'
         ],
         avoidWhen: [
-          'Single account setup (use standard IAM)',
-          'App-specific user pools (use Cognito)'
+          'Single account environment'
         ],
         keyFacts: [
-          'AWS Organizations integration required',
-          'Free service'
+          'SCPs set guardrails (cannot grant permissions)',
+          'Root account has full power'
         ]
       }
     ],
     comparisons: [
-      { fromId: 'kms', toId: 'secrets-manager', label: 'KMS = Key Mgmt; Secrets Mgr = Data Mgmt' },
-      { fromId: 'vpc-security', toId: 'waf', label: 'SG/NACL = L3/4; WAF = L7' }
+      { fromId: 'kms', toId: 'secrets-manager', label: 'KMS = Keys; Secrets Mgr = Data' }
     ]
   },
   {
@@ -159,116 +154,111 @@ export const BOARDS: Board[] = [
         category: 'Networking',
         whatItIs: 'Highly available and scalable DNS web service.',
         useWhen: [
-          'Domain registration',
           'Health checks / Failover',
-          'Routing policies (Weighted, Latency, Geolocation)'
+          'Routing: Latency, Geo proximity, Multi-value',
+          'Public and Private Hosted Zones'
         ],
         avoidWhen: [
-          'Static content caching -> use CloudFront',
-          'Global TCP/UDP acceleration -> use Global Accelerator'
+          'Static content caching -> use CloudFront'
         ],
         keyFacts: [
           '100% Availability SLA',
-          'Aliases for AWS resources (free!)'
+          'Active-Passive or Active-Active failover'
         ]
       },
       {
-        id: 'sqs',
-        name: 'SQS',
-        category: 'Integration',
-        whatItIs: 'Standard and FIFO queues for decoupling microservices.',
+        id: 'elb',
+        name: 'ELB (ALB / NLB)',
+        category: 'Networking',
+        whatItIs: 'Distribute incoming traffic across multiple targets.',
         useWhen: [
-          'Asynchronous processing',
-          'Smoothing out traffic spikes',
-          'Decoupling producer from consumer'
+          'ALB: Layer 7 (HTTP/S), Path/Host routing',
+          'NLB: Layer 4 (TCP/UDP), Ultra-low latency',
+          'High availability across multiple AZs'
         ],
         avoidWhen: [
-          'Push notifications -> use SNS',
-          'Strict 1-to-many fan-out -> use SNS'
+          'Single instance app without scale needs'
         ],
         keyFacts: [
-          'Standard: at-least-once delivery',
-          'FIFO: exactly-once, strict order'
-        ]
-      },
-      {
-        id: 'sns',
-        name: 'SNS',
-        category: 'Integration',
-        whatItIs: 'Pub/Sub messaging service for fan-out.',
-        useWhen: [
-          'Pushing messages to multiple subscribers (SQS, Lambda, Email)',
-          'Immediate notifications'
-        ],
-        avoidWhen: [
-          'Buffering/Queuing messages -> use SQS',
-          'Complex event routing -> use EventBridge'
-        ],
-        keyFacts: [
-          'Push-based mechanism'
-        ]
-      },
-      {
-        id: 'eventbridge',
-        name: 'EventBridge',
-        category: 'Integration',
-        whatItIs: 'Serverless event bus that connects apps using data.',
-        useWhen: [
-          'Routing events between AWS services',
-          'Schema discovery',
-          'SaaS app integration (Zendesk, Shopify)'
-        ],
-        avoidWhen: [
-          'Simple point-to-point messaging -> use SQS/SNS',
-          'High throughput data streaming -> use Kinesis'
-        ],
-        keyFacts: [
-          'Rules-based routing',
-          'Event replay capability'
-        ]
-      },
-      {
-        id: 'lambda',
-        name: 'Lambda',
-        category: 'Compute',
-        whatItIs: 'Serverless functions triggered by events.',
-        useWhen: [
-          'Short-lived tasks (<15 mins)',
-          'Automating AWS tasks',
-          'Backend for API Gateway'
-        ],
-        avoidWhen: [
-          'Long-running processes (>15 mins) -> use Fargate/EC2',
-          'Legacy apps needing specific OS config -> use EC2'
-        ],
-        keyFacts: [
-          'Pay per request & duration',
-          'Auto-scales to zero'
+          'NLB provides static IP capability',
+          'ALB supports WebSockets and sticky sessions'
         ]
       },
       {
         id: 'asg',
         name: 'Auto Scaling',
         category: 'Compute',
-        whatItIs: 'Automatically adjust EC2 capacity to maintain performance.',
+        whatItIs: 'Automatically adjust EC2 capacity to keep steady performance.',
         useWhen: [
-          'Predictable or unpredictable traffic patterns',
-          'Maintaining a minimum number of healthy instances',
-          'Cost optimization (scaling down at night)'
+          'Scaling based on CPU/Network metrics',
+          'Predictive scaling (AI-driven)',
+          'Ensuring minimum health count'
         ],
         avoidWhen: [
-          'Single, small instance workload',
-          'Stateful apps that cannot handle instance termination'
+          'Workload doesn\'t vary and can fit on 1 node'
         ],
         keyFacts: [
-          'Launch Templates are preferred over Launch Configs',
-          'Dynamic, Scheduled, and Predictive scaling'
+          'Launch Templates are newer/preferred',
+          'Cooldown periods prevent flapping'
+        ]
+      },
+      {
+        id: 'sqs',
+        name: 'Amazon SQS',
+        category: 'Integration',
+        whatItIs: 'Standard and FIFO queues for decoupling.',
+        useWhen: [
+          'Asynchronous processing',
+          'Smoothing traffic spikes',
+          'Decoupling producer from consumer'
+        ],
+        avoidWhen: [
+          'Real-time, ordering not vital -> use SNS'
+        ],
+        keyFacts: [
+          'Visibility timeout (default 30s)',
+          'Long polling saves money (up to 20s)'
+        ]
+      },
+      {
+        id: 'step-functions',
+        name: 'Step Functions',
+        category: 'Integration',
+        whatItIs: 'Serverless visual workflow orchestrator.',
+        useWhen: [
+          'Orchestrating multiple Lambda functions',
+          'Retry logic & error handling for complex tasks',
+          'Long-running workflows (up to 1 year)'
+        ],
+        avoidWhen: [
+          'Simple single function call'
+        ],
+        keyFacts: [
+          'Standard (long) vs Express (short/high freq) workflows'
+        ]
+      },
+      {
+        id: 'cloudwatch',
+        name: 'CloudWatch',
+        category: 'Monitoring',
+        whatItIs: 'Monitoring and observability for AWS resources.',
+        useWhen: [
+          'Alarms based on metrics (CPU, Error count)',
+          'Log aggregation and searching (Logs Insights)',
+          'Dashboards for operational visibility'
+        ],
+        avoidWhen: [
+          'Recording API calls for audit -> use CloudTrail'
+        ],
+        keyFacts: [
+          'Metrics: Standard (1 min) or Detailed (1 sec)',
+          'Events are now in EventBridge'
         ]
       }
     ],
     comparisons: [
-      { fromId: 'sqs', toId: 'sns', label: 'SQS = Pull/Queue; SNS = Push/Fan-out' },
-      { fromId: 'sns', toId: 'eventbridge', label: 'SNS = Simple; EventBridge = Complex Logic' }
+      { fromId: 'route53', toId: 'elb', label: 'DNS vs ELB level routing' },
+      { fromId: 'sqs', toId: 'sns', label: 'Pull (SQS) vs Push (SNS)' }
     ]
   },
   {
@@ -278,124 +268,98 @@ export const BOARDS: Board[] = [
     domain: "Domain 3",
     services: [
       {
-        id: 'ec2',
-        name: 'EC2',
-        category: 'Compute',
-        whatItIs: 'Virtual servers in the cloud.',
-        useWhen: [
-          'Full control over OS/Software',
-          'High performance local storage (Instance Store)',
-          'Monolithic applications'
-        ],
-        avoidWhen: [
-          'Simple functions -> use Lambda',
-          'Dockerized microservices -> use ECS/Fargate'
-        ],
-        keyFacts: [
-          'Instance types (Memory, Compute, Storage optimized)',
-          'Purchasing options: On-Demand, Spot, Reserved'
-        ]
-      },
-      {
-        id: 'ebs',
-        name: 'EBS',
+        id: 'instance-store',
+        name: 'Instance Store',
         category: 'Storage',
-        whatItIs: 'Block storage volumes for EC2.',
+        whatItIs: 'Temporary block-level storage for EC2.',
         useWhen: [
-          'OS boot volumes',
-          'Database storage (io2 for high IOPS)',
-          'Data that persists after instance termination'
+          'Ultra-low latency requirements',
+          'Caching, temp files, buffers',
+          'NoSQL DB data replication'
         ],
         avoidWhen: [
-          'Shared file system -> use EFS',
-          'Object storage -> use S3',
-          'Temporary data -> use Instance Store'
+          'Persistent data storage -> use EBS'
         ],
         keyFacts: [
-          'Availability Zone locked',
-          'Snapshots stored in S3'
+          'Ephemeral: Data lost if instance stops',
+          'High IOPS included'
         ]
       },
       {
-        id: 'rds',
-        name: 'RDS',
+        id: 'efs',
+        name: 'Amazon EFS',
+        category: 'Storage',
+        whatItIs: 'Managed NFS shared file system for Linux.',
+        useWhen: [
+          'Shared storage across 1000s of nodes',
+          'CMS content storage',
+          'POSIX compliance needed'
+        ],
+        avoidWhen: [
+          'Windows clients only -> use FSx'
+        ],
+        keyFacts: [
+          'Multi-AZ availability',
+          'Scales automatically'
+        ]
+      },
+      {
+        id: 'kinesis-streams',
+        name: 'Kinesis Streams',
+        category: 'Analytics',
+        whatItIs: 'Scalable real-time data streaming.',
+        useWhen: [
+          'Ingesting TBs of data per hour',
+          'Real-time analytics',
+          'Ordering and replay'
+        ],
+        avoidWhen: [
+          'Simple buffering -> use SQS'
+        ],
+        keyFacts: [
+          'Data retention 24h to 365 days',
+          'Partitioned via Shards'
+        ]
+      },
+      {
+        id: 'redshift',
+        name: 'Amazon Redshift',
         category: 'Database',
-        whatItIs: 'Managed Relational Database Service.',
+        whatItIs: 'Fast, fully managed data warehouse.',
         useWhen: [
-          'Complex joins / Transactions',
-          'Standard DB engines (Postgres, MySQL, Oracle)',
-          'Read replicas for scaling'
+          'Complex OLAP queries',
+          'Petabyte-scale analysis',
+          'Columnar storage'
         ],
         avoidWhen: [
-          'Massive scale / schema-less -> use DynamoDB',
-          'Real-time caching -> use ElastiCache'
+          'OLTP workloads -> use RDS'
         ],
         keyFacts: [
-          'Multi-AZ for DR/Availability',
-          'Read Replicas for performance'
+          'Redshift Spectrum queries S3 directement'
         ]
       },
       {
-        id: 'dynamodb',
-        name: 'DynamoDB',
-        category: 'Database',
-        whatItIs: 'Fast, flexible NoSQL database service.',
+        id: 'global-accelerator',
+        name: 'Global Accelerator',
+        category: 'Networking',
+        whatItIs: 'Improve global app availability.',
         useWhen: [
-          'Sub-10ms performance at any scale',
-          'Shopping carts, session storage',
-          'Serverless applications'
+          'Non-HTTP traffic acceleration',
+          'Anycast Static IPs',
+          'Multi-region failover'
         ],
         avoidWhen: [
-          'Relational joins required -> use RDS',
-          'OLAP workloads -> use Redshift'
+          'Caching web content -> use CloudFront'
         ],
         keyFacts: [
-          'Serverless & auto-scaling',
-          'DAX for in-memory caching'
-        ]
-      },
-      {
-        id: 'elasticache',
-        name: 'ElastiCache',
-        category: 'Database',
-        whatItIs: 'In-memory data store using Redis or Memcached.',
-        useWhen: [
-          'Extreme performance/low latency reads',
-          'Offloading DB read pressure',
-          'Session management'
-        ],
-        avoidWhen: [
-          'Primary data storage needs persistence (mostly)',
-          'Complex relational data'
-        ],
-        keyFacts: [
-          'Redis: Complex data types, persistence',
-          'Memcached: Simple key-value, multi-threaded'
-        ]
-      },
-      {
-        id: 'athena',
-        name: 'Athena',
-        category: 'Monitoring',
-        whatItIs: 'Interactive query service for data in S3 using SQL.',
-        useWhen: [
-          'Analyzing logs in S3',
-          'Ad-hoc queries on data lakes',
-          'Serverless analytics'
-        ],
-        avoidWhen: [
-          'Real-time transaction processing',
-          'Complex ETL (use Glue)'
-        ],
-        keyFacts: [
-          'Pay per query (usually $5/TB scanned)',
-          'Columnar formats (Parquet) save costs'
+          'Uses AWS global network',
+          'Fast failover (<30s)'
         ]
       }
     ],
     comparisons: [
-      { fromId: 'rds', toId: 'dynamodb', label: 'RDS = SQL/Relational; DDB = NoSQL/Scalable' },
-      { fromId: 'ebs', toId: 's3-tiers', label: 'EBS = Block; S3 = Object' }
+      { fromId: 'instance-store', toId: 'ebs', label: 'Ephemeral vs Persistent' },
+      { fromId: 'cloudfront', toId: 'global-accelerator', label: 'Caching vs IP acceleration' }
     ]
   },
   {
@@ -405,121 +369,188 @@ export const BOARDS: Board[] = [
     domain: "Domain 4",
     services: [
       {
-        id: 's3-tiers',
-        name: 'S3 Tiers',
+        id: 's3-lifecycle',
+        name: 'S3 Lifecycle',
         category: 'Storage',
-        whatItIs: 'Automatic or manual storage classes to save costs.',
+        whatItIs: 'Automate data movement and expiration.',
         useWhen: [
-          'Infrequent access (S3-IA)',
-          'Archival data (Glacier)',
-          'Unknown access patterns (Intelligent Tiering)'
+          'Moving old logs to Glacier',
+          'Deleting old versions',
+          'Saving costs on aging data'
         ],
         avoidWhen: [
-          'Data needed in <1ms -> use EBS',
-          'Frequently modified files -> use EFS'
+          'Access patterns are unknown -> use Intelligent Tiering'
         ],
         keyFacts: [
-          'Standard: $0.023/GB',
-          'Glacier Deep Archive: $0.00099/GB'
+          'Free rules',
+          'Transition vs Expiration'
         ]
       },
       {
-        id: 'spot-instances',
-        name: 'Spot Instances',
+        id: 'spot-savings',
+        name: 'Spot & Savings Plans',
         category: 'Compute',
-        whatItIs: 'Use spare AWS capacity for up to 90% discount.',
+        whatItIs: 'EC2 purchasing models for max savings.',
         useWhen: [
-          'Fault-tolerant workloads (batch jobs, data analysis)',
-          'Stateless services'
+          'Spot: Fault-tolerant jobs',
+          'Savings Plans: Consistent usage',
+          'Reserved Instances: Standard workloads'
         ],
         avoidWhen: [
-          'Critical/Stateful workloads that cannot be interrupted'
+          'On-Demand for short unpredictable tests'
         ],
         keyFacts: [
-          '2-minute interruption notice'
+          'Spot: 2 min warning',
+          'Savings Plans covers Lambda/Fargate'
         ]
       },
       {
-        id: 'transit-gateway',
-        name: 'Transit Gateway',
+        id: 'nat-gateway-cost',
+        name: 'NAT Gateway Pricing',
         category: 'Networking',
-        whatItIs: 'Hub-and-spoke network topology for multi-VPC.',
+        whatItIs: 'Managing costs for private egress.',
         useWhen: [
-          'Connecting 100s of VPCs and On-prem',
-          'Simplifying complex peering meshes'
+          'Use 1 per Region for savings',
+          'Replacing with VPC Endpoints (Free)'
         ],
         avoidWhen: [
-          'Just two VPCs peering (use VPC Peering - free!)'
+          'Direct internet access (IGW)'
         ],
         keyFacts: [
-          'Regional service',
-          'Supports multicast'
+          'Billed per hour + per GB'
         ]
       },
       {
-        id: 'cost-explorer',
-        name: 'Cost Explorer',
+        id: 'compute-optimizer',
+        name: 'Compute Optimizer',
         category: 'Monitoring',
-        whatItIs: 'Visualize and manage your AWS spending.',
+        whatItIs: 'ML rightsizing recommendations.',
         useWhen: [
-          'Analyzing monthly trends',
-          'Forecasting future costs',
-          'Identifying cost anomalies'
+          'Identifying over-provisioned instances',
+          'Suggesting better families'
         ],
         avoidWhen: [
-          'Real-time runtime performance -> use CloudWatch'
+          'Real-time scaling -> use ASG'
         ],
         keyFacts: [
-          'FREE to use',
-          'Shows usage by service, tag, region'
+          'Uses 14 days of metrics'
+        ]
+      },
+      {
+        id: 'snow-family',
+        name: 'Snow Family',
+        category: 'Storage',
+        whatItIs: 'Physical devices to migrate petabytes of data.',
+        useWhen: [
+          'Migration with limited bandwidth',
+          'Edge computing in remote areas (Snowball Edge)',
+          'Massive data transfer (Snowmobile)'
+        ],
+        avoidWhen: [
+          'Ongoing live data sync -> use DataSync'
+        ],
+        keyFacts: [
+          'Offline migration',
+          'Encryption is mandatory'
+        ]
+      },
+      {
+        id: 'ecs-eks-fargate',
+        name: 'Containers: ECS / EKS',
+        category: 'Compute',
+        whatItIs: 'Manage and scale containerized applications.',
+        useWhen: [
+          'ECS: Simple, AWS-native container orchestration',
+          'EKS: Kubernetes-compatible workloads',
+          'Fargate: Serverless containers (no EC2s needed)'
+        ],
+        avoidWhen: [
+          'Standard virtual machines -> use EC2'
+        ],
+        keyFacts: [
+          'Fargate is the serverless option for both'
+        ]
+      },
+      {
+        id: 'glue-quicksight',
+        name: 'Analytics: Glue / QS',
+        category: 'Analytics',
+        whatItIs: 'Data preparation (Glue) and visualization (QuickSight).',
+        useWhen: [
+          'Glue: ETL, Data Cataloging',
+          'QuickSight: BI Dashboards, ML insights'
+        ],
+        avoidWhen: [
+          'Ad-hoc SQL queries -> use Athena'
+        ],
+        keyFacts: [
+          'Glue is serverless ETL'
+        ]
+      },
+      {
+        id: 'transfer-family',
+        name: 'Transfer Family',
+        category: 'Migration',
+        whatItIs: 'Fully managed SFTP, FTPS, and FTP service.',
+        useWhen: [
+          'Direct upload to S3/EFS via SFTP',
+          'Modernizing legacy file transfers'
+        ],
+        avoidWhen: [
+          'Web-based uploads -> use S3 Presigned URLs'
+        ],
+        keyFacts: [
+          'Direct integration with S3'
+        ]
+      },
+      {
+        id: 'appsync',
+        name: 'AppSync',
+        category: 'Integration',
+        whatItIs: 'Serverless GraphQL service.',
+        useWhen: [
+          'Real-time data sync across devices',
+          'Combining multiple data sources in one API'
+        ],
+        avoidWhen: [
+          'Simple REST API -> use API Gateway'
+        ],
+        keyFacts: [
+          'Baked-in WebSocket support'
         ]
       }
     ],
     comparisons: [
-      { fromId: 's3-tiers', toId: 'ec2', label: 'Storage vs Compute cost strategies' }
+      { fromId: 's3-tiers', toId: 's3-lifecycle', label: 'Static vs Automated movement' },
+      { fromId: 'snow-family', toId: 'nat-gateway-cost', label: 'Physical vs Network migration' }
     ]
   }
 ];
 
 export const DECISION_TREES: DecisionTree[] = [
   {
-    title: "Storage Decision Matrix",
+    title: "S3 Storage Classes",
     nodes: [
       {
-        question: "How do you need to access the data?",
+        question: "How often do you access the data?",
         options: [
-          { label: "Block storage (Attached to 1 EC2)", result: "EBS" },
-          { label: "Shared File System (LAN/POSIX)", result: "EFS" },
-          { label: "Object storage (Web URL/API)", result: "S3" },
-          { label: "Windows Native Shared FS", result: "FSx for Windows" }
+          { label: "Frequently (Standard)", result: "S3 Standard" },
+          { label: "Infrequently (IA)", result: "S3 Standard-IA" },
+          { label: "Archive (Glacier)", result: "S3 Glacier" },
+          { label: "Unknown Pattern", result: "Intelligent-Tiering" }
         ]
       }
     ]
   },
   {
-    title: "Messaging Decision Matrix",
+    title: "Hybrid Connectivity",
     nodes: [
       {
-        question: "What is the primary communication pattern?",
+        question: "Requirement for latency and bandwidth?",
         options: [
-          { label: "Queue / Decouple (Pull)", result: "SQS" },
-          { label: "Fan-out / Notify (Push)", result: "SNS" },
-          { label: "Event Bus / Routing", result: "EventBridge" },
-          { label: "Ordered Stream + Replay", result: "Kinesis Data Streams" }
-        ]
-      }
-    ]
-  },
-  {
-    title: "Database Decision Matrix",
-    nodes: [
-      {
-        question: "What is the data structure and scale requirement?",
-        options: [
-          { label: "Relational / SQL / Managed", result: "RDS" },
-          { label: "NoSQL / Key-Value / Global Scale", result: "DynamoDB" },
-          { label: "In-memory / Caching", result: "ElastiCache" },
-          { label: "Data Warehouse / OLAP", result: "Redshift" }
+          { label: "Internet / Quick Setup", result: "AWS Site-to-Site VPN" },
+          { label: "Dedicated / Predictable", result: "AWS Direct Connect" },
+          { label: "Connect 100s of VPCs", result: "AWS Transit Gateway" }
         ]
       }
     ]

@@ -1,4 +1,4 @@
-export type ServiceCategory = 'Compute' | 'Networking' | 'Storage' | 'Database' | 'Security' | 'Integration' | 'Monitoring';
+export type ServiceCategory = 'Compute' | 'Networking' | 'Storage' | 'Database' | 'Security' | 'Integration' | 'Monitoring' | 'Analytics' | 'Migration';
 
 export interface ServiceCard {
   id: string;

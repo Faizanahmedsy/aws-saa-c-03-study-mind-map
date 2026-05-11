@@ -13,7 +13,9 @@ import {
   Activity,
   Box,
   LayoutGrid,
-  ClipboardList
+  ClipboardList,
+  Menu,
+  X
 } from 'lucide-react';
 import { BOARDS, DECISION_TREES } from './data';
 import { ServiceCard, ServiceCategory } from './types';
@@ -26,6 +28,8 @@ const CATEGORY_STYLES: Record<ServiceCategory, { bg: string; border: string; ico
   Security: { bg: 'bg-[#FEF2F2]', border: 'border-l-[#EF4444]', icon: Shield, label: 'SECURITY' },
   Integration: { bg: 'bg-[#FAF5FF]', border: 'border-l-[#A855F7]', icon: MessageSquare, label: 'INTEGRATION' },
   Monitoring: { bg: 'bg-white', border: 'border-l-[#64748b]', icon: Activity, label: 'MONITORING' },
+  Analytics: { bg: 'bg-[#f0f9ff]', border: 'border-l-[#0ea5e9]', icon: LayoutGrid, label: 'ANALYTICS' },
+  Migration: { bg: 'bg-[#f0fdfa]', border: 'border-l-[#14b8a6]', icon: RefreshCw, label: 'MIGRATION' },
 };
 
 const CompactNote = ({ service }: { service: ServiceCard }) => {
@@ -92,6 +96,7 @@ const CompactNote = ({ service }: { service: ServiceCard }) => {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<number | 'trees'>(1);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const tabs = [
     { id: 1, label: 'D1: Secure Architectures', weight: '30%', icon: Shield },
@@ -105,14 +110,34 @@ export default function App() {
   , [activeTab]);
 
   return (
-    <div className="flex bg-[#F4F4F2] h-screen overflow-hidden">
+    <div className="flex bg-[#F4F4F2] h-screen overflow-hidden relative">
+      {/* Mobile Menu Trigger */}
+      <div className="lg:hidden fixed top-4 left-4 z-40">
+        <button 
+          onClick={() => setIsSidebarOpen(true)}
+          className="p-3 bg-white shadow-lg rounded-xl border border-slate-200"
+        >
+          <Menu size={20} className="text-slate-700" />
+        </button>
+      </div>
+
       {/* High Density Sidebar */}
-      <aside className="w-[220px] h-full bg-white border-r border-slate-200 flex flex-col p-5 z-20 shrink-0">
-        <div className="mb-10">
+      <aside 
+        className={`fixed lg:relative top-0 left-0 h-full w-[240px] lg:w-[220px] bg-white border-r border-slate-200 flex flex-col p-5 z-50 shrink-0 transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        <div className="mb-10 flex items-center justify-between">
           <h1 className="font-black text-xl leading-[0.9] tracking-tighter">
             AWS SAA-C03<br/>
             <span className="text-orange-500 font-medium text-sm tracking-normal">Study Mind Map</span>
           </h1>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-1 hover:bg-slate-100 rounded-full"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="flex-grow space-y-8 overflow-y-auto pr-2 custom-scrollbar">
@@ -122,7 +147,10 @@ export default function App() {
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsSidebarOpen(false);
+                  }}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all border border-transparent ${
                     activeTab === tab.id 
                     ? 'bg-[#111827] text-white shadow-sm' 
@@ -131,7 +159,7 @@ export default function App() {
                 >
                   <div className="flex items-center gap-2">
                     <tab.icon size={12} className={activeTab === tab.id ? 'opacity-100' : 'opacity-40'} />
-                    <span className="truncate whitespace-nowrap overflow-hidden">{tab.id}: {tab.label.split(': ')[1] || tab.label}</span>
+                    <span className="truncate whitespace-nowrap overflow-hidden pr-2">{tab.id}: {tab.label.split(': ')[1] || tab.label}</span>
                   </div>
                   <div className={`text-[9px] mt-1 font-mono ${activeTab === tab.id ? 'opacity-60' : 'opacity-40'}`}>
                     Weight: {tab.weight}
@@ -145,7 +173,10 @@ export default function App() {
             <div className="text-[10px] uppercase font-black text-slate-400 mb-3 tracking-widest">Mastery Tools</div>
             <div className="space-y-1">
               <button
-                onClick={() => setActiveTab('trees')}
+                onClick={() => {
+                  setActiveTab('trees');
+                  setIsSidebarOpen(false);
+                }}
                 className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-bold transition-all border border-transparent ${
                   activeTab === 'trees'
                   ? 'bg-[#111827] text-white shadow-sm'
@@ -183,9 +214,22 @@ export default function App() {
         </div>
       </aside>
 
+      {/* Sidebar Overlay for Mobile */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Main Content Area (Dot Grid Canvas) */}
       <main className="flex-grow h-full overflow-y-auto canvas-grid relative select-none">
-        <div className="p-10 min-h-full">
+        <div className="p-6 md:p-10 min-h-full">
           <AnimatePresence mode="wait">
             {activeTab === 'trees' ? (
               <motion.div
@@ -195,16 +239,16 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="max-w-7xl mx-auto"
               >
-                <div className="mb-12">
-                  <h1 className="text-4xl font-black text-slate-900 leading-none">MASTER<br/><span className="text-indigo-600">DECISION TREES</span></h1>
+                <div className="mb-12 mt-12 lg:mt-0">
+                  <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-none">MASTER<br/><span className="text-indigo-600">DECISION TREES</span></h1>
                   <p className="text-sm text-slate-500 mt-2 font-medium">Logical decision gates for rapid exam response.</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {DECISION_TREES.map((tree, i) => (
-                    <div key={i} className="bg-white/80 backdrop-blur-sm p-6 rounded-sm border border-slate-200 shadow-sm relative overflow-hidden group">
+                    <div key={i} className="bg-white/80 backdrop-blur-sm p-5 md:p-6 rounded-sm border border-slate-200 shadow-sm relative overflow-hidden group">
                       <div className="absolute top-0 left-0 w-1 h-full bg-indigo-600"></div>
-                      <h3 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-3">
+                      <h3 className="text-lg md:text-xl font-black text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-3">
                          <Box size={16} className="text-indigo-600" />
                          {tree.title}
                       </h3>
@@ -240,11 +284,11 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="max-w-7xl mx-auto"
               >
-                <div className="flex items-end justify-between mb-12">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 mt-12 lg:mt-0 gap-6">
                   <div>
-                    <h1 className="text-4xl font-black text-slate-900 leading-none">
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-[0.9] tracking-tight">
                       DOMAIN 0{currentBoard.id}<br/>
-                      <span className="text-blue-600 uppercase">{currentBoard.title.split(': ')[1] || currentBoard.title}</span>
+                      <span className="text-blue-600 uppercase text-2xl md:text-4xl">{currentBoard.title.split(': ')[1] || currentBoard.title}</span>
                     </h1>
                     <p className="text-sm text-slate-500 mt-2 font-medium">
                       {currentBoard.weight} of Exam Score • Focus on Core Patterns
@@ -252,13 +296,13 @@ export default function App() {
                   </div>
                   
                   {currentBoard.comparisons && currentBoard.comparisons.length > 0 && (
-                    <div className="hidden lg:flex flex-col items-end gap-2 shrink-0">
+                    <div className="flex flex-col md:items-end gap-2 shrink-0 overflow-x-auto">
                       <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Decision Logic</div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 pb-2 md:pb-0">
                         {currentBoard.comparisons.map((comp, i) => (
                           <div 
                             key={i} 
-                            className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm group hover:border-blue-400 transition-colors"
+                            className="bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm group hover:border-blue-400 transition-colors shrink-0"
                             title={comp.label}
                           >
                             <span className="text-[10px] font-bold text-slate-800 flex items-center gap-2">
@@ -274,7 +318,7 @@ export default function App() {
                 </div>
 
                 {/* Grid of Compact Notes */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start items-start">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 content-start items-start">
                   {currentBoard.services.map((service) => (
                     <CompactNote key={service.id} service={service} />
                   ))}
