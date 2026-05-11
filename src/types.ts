@@ -25,24 +25,19 @@ export interface Board {
   comparisons?: Comparison[];
 }
 
-export interface DecisionNode {
+export interface DecisionScenario {
   id: string;
-  question: string;
-  options: {
-    label: string;
-    description?: string;
-    nextId?: string; // ID of the next node
-    result?: string; // Final recommendation if no nextId
-    isCorrect?: boolean; // For quiz mode: is this the "best practice" path?
-  }[];
+  category: ServiceCategory;
+  scenario: string;
+  recommendation: string;
+  keyReason: string;
 }
 
 export interface DecisionTree {
   id: string;
   title: string;
   description: string;
-  startNodeId: string;
-  nodes: DecisionNode[];
+  scenarios: DecisionScenario[];
 }
 
 export interface AWSAllService {

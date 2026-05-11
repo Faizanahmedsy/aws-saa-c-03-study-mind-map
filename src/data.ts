@@ -592,80 +592,155 @@ export const ALL_SERVICES: AWSAllService[] = [
 
 export const DECISION_TREES: DecisionTree[] = [
   {
-    id: 'storage-logic',
-    title: "Storage Decision Matrix",
-    description: "Choose the right storage type based on access patterns and requirements.",
-    startNodeId: 'access-type',
-    nodes: [
-      {
-        id: 'access-type',
-        question: "What is your primary access requirement?",
-        options: [
-          { label: "High speed LOCAL attached storage", description: "Storage for a single virtual server.", nextId: 'durability-needs' },
-          { label: "Shared file system access", description: "Accessible by multiple servers simultaneously.", nextId: 'os-type' },
-          { label: "Web URL / API based storage", description: "Object storage for assets, backups, etc.", result: "Amazon S3", isCorrect: true }
-        ]
-      },
-      {
-        id: 'os-type',
-        question: "Which operating system are the clients using?",
-        options: [
-          { label: "Linux (NFS)", result: "Amazon EFS", isCorrect: true },
-          { label: "Windows (SMB)", nextId: 'windows-needs' },
-          { label: "High Performance Compute / Lustre", result: "FSx for Lustre", isCorrect: true }
-        ]
-      },
-      {
-        id: 'windows-needs',
-        question: "Do you need native Windows behavior?",
-        options: [
-          { label: "Active Directory / NTFS", result: "FSx for Windows File Server", isCorrect: true },
-          { label: "General purpose Windows sharing", result: "FSx for Windows or S3 w/ File Gateway" }
-        ]
-      },
-      {
-        id: 'durability-needs',
-        question: "Do the files need to survive if the EC2 instance is stopped?",
-        options: [
-          { label: "Yes, persistence is critical.", result: "Amazon EBS", isCorrect: true },
-          { label: "No, temporary cache/buffers only.", result: "Instance Store", isCorrect: true }
-        ]
-      }
+    id: 'storage',
+    title: "Storage & Migration Scenarios",
+    description: "Choosing between S3, EBS, EFS, and Migration tools.",
+    scenarios: [
+      { id: 's1', category: 'Storage', scenario: "Shared POSIX file system for hundreds of Linux EC2 instances.", recommendation: "Amazon EFS", keyReason: "EFS provides managed NFS for Linux with multi-instance concurrent access." },
+      { id: 's2', category: 'Storage', scenario: "High-performance block storage for a database on a single EC2 instance.", recommendation: "Amazon EBS (io2)", keyReason: "EBS Provisioned IOPS (io2) offers the lowest latency and highest throughput for block storage." },
+      { id: 's3', category: 'Storage', scenario: "Temporary storage for scratch files and buffers with ultra-low latency.", recommendation: "Instance Store", keyReason: "Ephemeral storage attached physically to the host; data is lost if stopped, but speed is unmatched." },
+      { id: 's4', category: 'Storage', scenario: "Millisecond access to data stored in S3 for infrequent access patterns.", recommendation: "S3 Standard-IA", keyReason: "Infrequent Access tier saves cost while maintaining low-latency retrieval." },
+      { id: 's5', category: 'Storage', scenario: "Move petabytes of data to AWS where internet bandwidth is the bottleneck.", recommendation: "AWS Snowball Edge", keyReason: "Physical device for large-scale data migration without using the network." },
+      { id: 's6', category: 'Migration', scenario: "Automate ongoing data migration from on-premise NFS to Amazon S3.", recommendation: "AWS DataSync", keyReason: "Managed service for high-speed data transfer between on-prem and AWS storage." },
+      { id: 's7', category: 'Storage', scenario: "Native Windows file sharing (SMB) with Active Directory integration.", recommendation: "Amazon FSx for Windows", keyReason: "Managed Windows file server supporting NTFS permissions and SMB protocol." },
+      { id: 's8', category: 'Storage', scenario: "Static website hosting with global low-latency distribution.", recommendation: "S3 + CloudFront", keyReason: "S3 stores the files; CloudFront caches them at edge locations worldwide." },
+      { id: 's9', category: 'Storage', scenario: "Long-term archival of compliance data with retrieval times of 12+ hours.", recommendation: "S3 Glacier Deep Archive", keyReason: "Lowest cost storage for data that is rarely accessed and can wait for retrieval." },
+      { id: 's10', category: 'Storage', scenario: "Automatically move S3 objects between tiers based on changing access patterns.", recommendation: "S3 Intelligent-Tiering", keyReason: "No operational overhead; AWS moves the data based on actual access behavior." },
+      { id: 's11', category: 'Storage', scenario: "Local caching of S3 data for on-premise applications to reduce latency.", recommendation: "Storage Gateway (S3 File Gateway)", keyReason: "Provides an on-premise interface (NFS/SMB) for S3 objects with local caching." },
+      { id: 's12', category: 'Storage', scenario: "Shared storage for Windows and Linux with Multi-AZ high availability.", recommendation: "Amazon FSx for NetApp ONTAP", keyReason: "Supports both SMB and NFS and provides robust multi-protocol enterprise storage." },
+      { id: 's13', category: 'Migration', scenario: "One-time migration of 50TB of data from S3 to another S3 bucket in a different account.", recommendation: "S3 Batch Operations", keyReason: "Efficiently perform large-scale object operations, like copying millions of files." },
+      { id: 's14', category: 'Storage', scenario: "Restricting S3 bucket access to specific VPC endpoints only.", recommendation: "S3 Bucket Policy with aws:SourceVpce", keyReason: "Secures data by ensuring it can only be accessed from within the private network." },
+      { id: 's15', category: 'Storage', scenario: "Storing sensitive medical records with hardware-based encryption key storage.", recommendation: "AWS CloudHSM", keyReason: "Provides FIPS 140-2 Level 3 dedicated hardware modules for key management." }
     ]
   },
   {
-    id: 'db-logic',
-    title: "Database Selection Guide",
-    description: "Map your data model to the most performant AWS database engine.",
-    startNodeId: 'data-model',
-    nodes: [
-      {
-        id: 'data-model',
-        question: "What is your data model type?",
-        options: [
-          { label: "Relational (SQL/Schema)", description: "Joins, transactions, ACID compliance.", nextId: 'sql-scale' },
-          { label: "NoSQL (Key-Value/JSON)", description: "Extreme scale, millisecond latency.", nextId: 'nosql-type' },
-          { label: "Analytical (OLAP)", description: "Large scale reporting, multi-TB datasets.", result: "Amazon Redshift", isCorrect: true }
-        ]
-      },
-      {
-        id: 'sql-scale',
-        question: "What are your scaling requirements?",
-        options: [
-          { label: "Standard managed DB (MySQL/Postgres)", result: "Amazon RDS", isCorrect: true },
-          { label: "High performance / Enterprise / Cloud-native", result: "Amazon Aurora", isCorrect: true },
-          { label: "Variable workloads (Auto-start/stop)", result: "Aurora Serverless", isCorrect: true }
-        ]
-      },
-      {
-        id: 'nosql-type',
-        question: "How do you need to access your NoSQL data?",
-        options: [
-          { label: "Web-scale Key-Value / Document", result: "DynamoDB", isCorrect: true },
-          { label: "In-memory caching (Redis/Mem)", result: "ElastiCache", isCorrect: true },
-          { label: "Graph relationships", result: "Amazon Neptune", isCorrect: true }
-        ]
-      }
+    id: 'compute',
+    title: "Compute & Architecture Scenarios",
+    description: "Deciding between EC2, Lambda, ECS, and Scaling strategies.",
+    scenarios: [
+      { id: 'c1', category: 'Compute', scenario: "Short-lived code execution (<15 mins) triggered by S3 uploads.", recommendation: "AWS Lambda", keyReason: "Serverless, scales automatically, only pay for execution time." },
+      { id: 'c2', category: 'Compute', scenario: "Long-running batch processing jobs that can tolerate interruptions.", recommendation: "EC2 Spot Instances", keyReason: "Up to 90% discount for fault-tolerant workloads." },
+      { id: 'c3', category: 'Compute', scenario: "Deploying a Docker containerized microservice without managing virtual servers.", recommendation: "AWS Fargate", keyReason: "Serverless compute for containers; removes the need to provision/patch EC2s." },
+      { id: 'c4', category: 'Compute', scenario: "Migrating a legacy application requiring specific OS kernel modifications.", recommendation: "Amazon EC2", keyReason: "Provides full control over the instance, OS, and software stack." },
+      { id: 'c5', category: 'Compute', scenario: "Automatically adjusting capacity to maintain steady, predictable performance.", recommendation: "Auto Scaling Group (ASG)", keyReason: "Scales EC2 instances based on metrics like CPU or custom CloudWatch alarms." },
+      { id: 'c6', category: 'Compute', scenario: "Running a high-performance computing (HPC) cluster with low-latency networking.", recommendation: "EC2 with Cluster Placement Group", keyReason: "Ensures instances are physically close for minimum latency between nodes." },
+      { id: 'c7', category: 'Compute', scenario: "Distributing traffic across multiple web servers based on URL path.", recommendation: "Application Load Balancer (ALB)", keyReason: "Layer 7 load balancer supporting path-based and host-based routing." },
+      { id: 'c8', category: 'Compute', scenario: "Handling millions of requests per second with ultra-low latency (UDP/TCP).", recommendation: "Network Load Balancer (NLB)", keyReason: "Layer 4 load balancer capable of handling extreme spikes with static IPs." },
+      { id: 'c9', category: 'Compute', scenario: "Provisioning a consistent amount of compute for 1-3 years for a 72% discount.", recommendation: "Compute Savings Plans", keyReason: "Flexible discount model covering EC2, Lambda, and Fargate usage." },
+      { id: 'c10', category: 'Compute', scenario: "Coordinating multiple Lambda functions into a long-running workflow.", recommendation: "AWS Step Functions", keyReason: "Visual orchestrator for complex state machines and error handling." },
+      { id: 'c11', category: 'Compute', scenario: "Running an application on a physical server dedicated entirely to your account.", recommendation: "EC2 Dedicated Hosts", keyReason: "Required for software licensing (per-core) and strict compliance needs." },
+      { id: 'c12', category: 'Compute', scenario: "Running batch jobs across thousands of EC2 instances with managed orchestration.", recommendation: "AWS Batch", keyReason: "Dynamically provisions compute resources based on volume and requirements of jobs." },
+      { id: 'c13', category: 'Compute', scenario: "Scaling an application based on a predictable pattern (e.g. every Monday morning).", recommendation: "ASG Scheduled Scaling", keyReason: "Proactively adjusts capacity before traffic arrives based on time/date." }
+    ]
+  },
+  {
+    id: 'database',
+    title: "Database & Analytics Scenarios",
+    description: "Choosing between RDS, DynamoDB, Redshift, and Caching.",
+    scenarios: [
+      { id: 'd1', category: 'Database', scenario: "A relational database for an ERP system requiring complex cross-table joins.", recommendation: "Amazon RDS", keyReason: "Managed relational service for SQL workloads like Postgres, MySQL, Oracle." },
+      { id: 'd2', category: 'Database', scenario: "Global shopping cart with millions of users and sub-10ms latency.", recommendation: "Amazon DynamoDB", keyReason: "NoSQL key-value store with consistent performance at any scale." },
+      { id: 'd3', category: 'Database', scenario: "Offloading read pressure from a primary SQL database with high-speed caching.", recommendation: "Amazon ElastiCache (Redis)", keyReason: "In-memory data store for sub-millisecond response times." },
+      { id: 'd4', category: 'Database', scenario: "Petabyte-scale data warehousing for complex analytical (OLAP) queries.", recommendation: "Amazon Redshift", keyReason: "Columnar storage and massively parallel processing for analytics." },
+      { id: 'd5', category: 'Analytics', scenario: "Querying data directly in S3 using standard SQL without moving it.", recommendation: "Amazon Athena", keyReason: "Serverless interactive query service; pay only for the data scanned." },
+      { id: 'd6', category: 'Database', scenario: "Relational database with automatic scaling, and Multi-AZ replication.", recommendation: "Amazon Aurora", keyReason: "AWS-native database with 3x higher performance than standard MySQL." },
+      { id: 'd7', category: 'Database', scenario: "Analyzing highly connected data like social networks or fraud patterns.", recommendation: "Amazon Neptune", keyReason: "Purpose-built graph database for navigating complex relationships." },
+      { id: 'd8', category: 'Database', scenario: "In-memory cache for DynamoDB to achieve microsecond latency.", recommendation: "DynamoDB DAX", keyReason: "Fully managed, highly available, in-memory cache specifically for DynamoDB." },
+      { id: 'd9', category: 'Database', scenario: "Serverless NoSQL database that scales to zero during inactivity.", recommendation: "DynamoDB On-Demand", keyReason: "Instantly handles spikes without capacity planning; pay per request." },
+      { id: 'd10', category: 'Analytics', scenario: "Managed ETL service to prepare data for analytics (Cataloging/Mapping).", recommendation: "AWS Glue", keyReason: "Serverless data integration service for discovery, prep, and combination." },
+      { id: 'd11', category: 'Database', scenario: "Migrating an on-premise Oracle DB to AWS Aurora with minimal downtime.", recommendation: "AWS DMS (Database Migration Service)", keyReason: "Supports heterogeneous migrations and continuous data replication." },
+      { id: 'd12', category: 'Database', scenario: "Converting a legacy SQL Server schema to a DynamoDB compatible format.", recommendation: "AWS Schema Conversion Tool (SCT)", keyReason: "Automates the assessment and conversion of DB schemas between different engines." }
+    ]
+  },
+  {
+    id: 'networking',
+    title: "Networking & Security Scenarios",
+    description: "VPC setup, Hybrid connectivity, and Threat protection.",
+    scenarios: [
+      { id: 'n1', category: 'Networking', scenario: "Securely connecting an on-premise data center to AWS with consistent bandwidth.", recommendation: "AWS Direct Connect", keyReason: "Physical, dedicated network connection bypasses the public internet." },
+      { id: 'n2', category: 'Networking', scenario: "Protecting a public web application from SQL injection and XSS attacks.", recommendation: "AWS WAF", keyReason: "Web Application Firewall filters Layer 7 traffic based on security rules." },
+      { id: 'n3', category: 'Networking', scenario: "Dedicated, private connection between two VPCs in different accounts/regions.", recommendation: "VPC Peering", keyReason: "Direct network routing between VPCs using private IP addresses." },
+      { id: 'n4', category: 'Networking', scenario: "Granting private access from a VPC to S3 without using a NAT Gateway.", recommendation: "VPC Gateway Endpoint", keyReason: "Free, private routing for S3 and DynamoDB within a VPC." },
+      { id: 'n5', category: 'Security', scenario: "Automatically rotating database passwords every 30 days.", recommendation: "AWS Secrets Manager", keyReason: "Integrated with RDS for automatic rotation and secure credential retrieval." },
+      { id: 'n6', category: 'Security', scenario: "Intelligent threat detection monitoring VPC Flow Logs and CloudTrail.", recommendation: "Amazon GuardDuty", keyReason: "Uses machine learning to identify malicious activity like crypto-mining." },
+      { id: 'n7', category: 'Networking', scenario: "Routing users to the closest application endpoint based on latency.", recommendation: "Route 53 (Latency Routing)", keyReason: "DNS-based routing that selects the region with the lowest latency for the user." },
+      { id: 'n8', category: 'Networking', scenario: "Consolidating multiple VPCs and on-premise connections into a central hub.", recommendation: "AWS Transit Gateway", keyReason: "Hub-and-spoke network topology for multi-VPC and hybrid environments." },
+      { id: 'n9', category: 'Security', scenario: "Centralized governance for multiple AWS accounts with consolidated billing.", recommendation: "AWS Organizations", keyReason: "Allows management of multiple accounts with Service Control Policies (SCPs)." },
+      { id: 'n10', category: 'Networking', scenario: "Accelerating globally distributed applications using Anycast IP addresses.", recommendation: "AWS Global Accelerator", keyReason: "Uses the AWS global network to improve availability and performance for any traffic type." },
+      { id: 'n11', category: 'Security', scenario: "Analyzing S3 bucket permissions to identify publicly accessible data.", recommendation: "IAM Access Analyzer", keyReason: "Helps identify resources in your account that are shared with an external entity." },
+      { id: 'n12', category: 'Networking', scenario: "Quickly setting up a secure VPN over the public internet to on-premise.", recommendation: "AWS Site-to-Site VPN", keyReason: "Uses IPsec to create a secure tunnel; fast to deploy but bandwidth varies with internet speed." }
+    ]
+  },
+  {
+    id: 'monitoring',
+    title: "Monitoring, Governance & Management",
+    description: "CloudWatch, Config, and operational excellence.",
+    scenarios: [
+      { id: 'm1', category: 'Monitoring', scenario: "Audit history of all API calls made in the AWS account.", recommendation: "AWS CloudTrail", keyReason: "Governance, compliance, and risk auditing service for AWS API actions." },
+      { id: 'm2', category: 'Monitoring', scenario: "Tracking resource configuration changes over time for compliance.", recommendation: "AWS Config", keyReason: "Assess, audit, and evaluate the configurations of your AWS resources." },
+      { id: 'm3', category: 'Monitoring', scenario: "Real-time performance metrics (CPU, Network) for EC2 instances.", recommendation: "Amazon CloudWatch Metrics", keyReason: "Standard monitoring service for resource utilization and health." },
+      { id: 'm4', category: 'Monitoring', scenario: "Tracing requests through a distributed microservices architecture.", recommendation: "AWS X-Ray", keyReason: "Helps developers analyze and debug production, distributed applications." },
+      { id: 'm5', category: 'Monitoring', scenario: "Centralized dashboard for security alerts across multiple AWS accounts.", recommendation: "AWS Security Hub", keyReason: "Aggregates security findings from GuardDuty, Inspector, Macie, etc." },
+      { id: 'm6', category: 'Monitoring', scenario: "Automated patch management for a fleet of EC2 instances.", recommendation: "AWS Systems Manager (Patch Manager)", keyReason: "Helps automate the process of patching managed instances with both security and other types of updates." },
+      { id: 'm7', category: 'Monitoring', scenario: "Identifying over-provisioned resources to optimize costs.", recommendation: "AWS Compute Optimizer", keyReason: "Uses Machine Learning to recommend optimal AWS resources for your workloads." },
+      { id: 'm8', category: 'Monitoring', scenario: "Visualizing operational health and compliance in a single view.", recommendation: "Systems Manager Explorer", keyReason: "Customizable operations dashboard that reports on the health and status of your AWS resources." },
+      { id: 'm9', category: 'Networking', scenario: "Analyzing network traffic patterns between subnets for security audits.", recommendation: "VPC Flow Logs", keyReason: "Captures information about the IP traffic to and from network interfaces in your VPC." },
+      { id: 'm10', category: 'Monitoring', scenario: "Detecting anomalous behavior in CloudWatch metrics automatically.", recommendation: "CloudWatch Anomaly Detection", keyReason: "Applies machine learning to continuously analyze metrics and identify unusual behavior." }
+    ]
+  },
+  {
+    id: 'serverless',
+    title: "Serverless & App Integration Scenarios",
+    description: "Decoupling, Messaging, and Event-driven patterns.",
+    scenarios: [
+      { id: 'i1', category: 'Integration', scenario: "Asynchronously decoupling two microservices to handle traffic spikes.", recommendation: "Amazon SQS", keyReason: "Message queue service that allows producers to send messages without waiting for consumers." },
+      { id: 'i2', category: 'Integration', scenario: "Broadcasting a single message to multiple subscribers (Fan-out pattern).", recommendation: "Amazon SNS", keyReason: "Pub/Sub service that pushes messages to multiple endpoints (Lambda, SQS, Email)." },
+      { id: 'i3', category: 'Integration', scenario: "Triggering AWS actions based on status changes in external SaaS apps.", recommendation: "Amazon EventBridge", keyReason: "Serverless event bus that connects applications using event data from many sources." },
+      { id: 'i4', category: 'Integration', scenario: "Providing a unified GraphQL interface for data scattered across multiple DBs.", recommendation: "AWS AppSync", keyReason: "Simplifies data access with a single endpoint and real-time synchronization." },
+      { id: 'i5', category: 'Compute', scenario: "Exposing a REST API endpoint for a Lambda-based backend service.", recommendation: "Amazon API Gateway", keyReason: "Managed service to create, publish, and secure APIs at any scale." },
+      { id: 'i6', category: 'Integration', scenario: "Strictly ordered message processing (Exactly-once) for financial transactions.", recommendation: "SQS FIFO", keyReason: "Ensures messages are processed in the exact order they were sent." },
+      { id: 'i7', category: 'Integration', scenario: "Large-scale real-time data ingestion for streaming analytics.", recommendation: "Amazon Kinesis Data Streams", keyReason: "Collects and processes large streams of data records in real-time." },
+      { id: 'i8', category: 'Integration', scenario: "Managed message broker for existing applications using RabbitMQ or ActiveMQ.", recommendation: "Amazon MQ", keyReason: "Allows easy migration of apps using standard messaging protocols." },
+      { id: 'i9', category: 'Integration', scenario: "Buffering data before loading it into S3, Redshift, or OpenSearch.", recommendation: "Amazon Kinesis Firehose", keyReason: "Fully managed service for loading streaming data into data lakes and warehouses." },
+      { id: 'i10', category: 'Compute', scenario: "Running a job every morning at 8 AM to generate report logs.", recommendation: "EventBridge (Cron) + Lambda", keyReason: "Schedule-based triggers for serverless automation." },
+      { id: 'i11', category: 'Integration', scenario: "Sending high-volume marketing or transactional emails.", recommendation: "Amazon SES (Simple Email Service)", keyReason: "Cost-effective, flexible, and scalable email service for developers." },
+      { id: 'i12', category: 'Integration', scenario: "Processing large JSON files in S3 and splitting them for parallel execution.", recommendation: "Step Functions Map State", keyReason: "Orchestrates parallel processing of items in an array or collection within a workflow." }
+    ]
+  },
+  {
+    id: 'compliance',
+    title: "Compliance & Disaster Recovery",
+    description: "RTO/RPO, Multi-region, and Data Sovereignty.",
+    scenarios: [
+      { id: 'r1', category: 'Storage', scenario: "Automatic replication of S3 objects to a different region for disaster recovery.", recommendation: "S3 Cross-Region Replication (CRR)", keyReason: "Provides automatic, asynchronous copying of objects across regions for high availability." },
+      { id: 'r2', category: 'Networking', scenario: "Single IP address that transparently redirects to a failover region during an outage.", recommendation: "Route 53 Failover Routing", keyReason: "Uses health checks to automatically route traffic to a secondary region if the primary is down." },
+      { id: 'r3', category: 'Compute', scenario: "Maintaining a exact copy of a production environment in a second region (Warm Standby).", recommendation: "Warm Standby", keyReason: "Balance between cost and recovery time (RTO) by keeping a scaled-down version ready." },
+      { id: 'r4', category: 'Database', scenario: "Relational database with multi-regional read replicas and fast failover.", recommendation: "Amazon Aurora Global Database", keyReason: "Allows for sub-second data replication and quick regional failover for global apps." },
+      { id: 'r5', category: 'Storage', scenario: "Preventing S3 objects from being deleted or overwritten for compliance (WORM).", recommendation: "S3 Object Lock", keyReason: "Ensures data cannot be changed for a set period, meeting strict regulatory requirements." },
+      { id: 'r6', category: 'Security', scenario: "Ensuring all data in S3 is encrypted with a key that is rotated every year.", recommendation: "SSE-KMS", keyReason: "Native encryption options that handle rotation and management automatically." },
+      { id: 'r7', category: 'Security', scenario: "Enforcing that no IAM user can ever delete the CloudTrail logs.", recommendation: "SCP (Service Control Policy)", keyReason: "Organization-level guardrail that overrides even local administrator permissions." },
+      { id: 'r8', category: 'Networking', scenario: "Testing a new application version by sending 10% of traffic to it.", recommendation: "Route 53 Weighted Routing", keyReason: "Allows for canary deployments or A/B testing by splitting traffic by percentage." },
+      { id: 'r9', category: 'Storage', scenario: "Recovering data in S3 that was accidentally deleted yesterday.", recommendation: "S3 Versioning", keyReason: "Keeps history of objects; allowing you to restore to a previous state." },
+      { id: 'r10', category: 'Database', scenario: "Backing up a NoSQL database every hour to a different region.", recommendation: "AWS Backup", keyReason: "Provides centralized, cross-region management for DB backups." },
+      { id: 'r11', category: 'Compute', scenario: "Deploying an application to multiple Availability Zones to ensure high availability.", recommendation: "Multi-AZ Deployment", keyReason: "Fundamental AWS pattern to protect against the failure of a single data center." }
+    ]
+  },
+  {
+    id: 'ai-ml',
+    title: "AI, Machine Learning & Media",
+    description: "Rekognition, SageMaker, and Intelligence services.",
+    scenarios: [
+      { id: 'ml1', category: 'Analytics', scenario: "Detecting objects, people, or text in images and videos using pre-trained ML.", recommendation: "Amazon Rekognition", keyReason: "Managed computer vision service that doesn't require deep learning expertise." },
+      { id: 'ml2', category: 'Analytics', scenario: "Converting text to lifelike speech in multiple languages.", recommendation: "Amazon Polly", keyReason: "Uses advanced deep learning technologies to synthesize natural sounding human speech." },
+      { id: 'ml3', category: 'Analytics', scenario: "Translating large volumes of text from one language to another automatically.", recommendation: "Amazon Translate", keyReason: "Neural machine translation service for fast, high-quality, and affordable translation." },
+      { id: 'ml4', category: 'Analytics', scenario: "Extracting text and structured data (forms/tables) from scanned documents.", recommendation: "Amazon Textract", keyReason: "Goes beyond simple OCR to identify the contents of fields in forms and information in tables." },
+      { id: 'ml5', category: 'Analytics', scenario: "Building, training, and deploying custom machine learning models at scale.", recommendation: "Amazon SageMaker", keyReason: "End-to-end platform for the entire machine learning lifecycle." },
+      { id: 'ml6', category: 'Analytics', scenario: "Transcribing audio files to text automatically (Speech-to-Text).", recommendation: "Amazon Transcribe", keyReason: "Adds speech-to-text capability to applications and handles various audio formats." },
+      { id: 'ml7', category: 'Analytics', scenario: "Analyzing the sentiment of customer reviews (Positive/Negative/Neutral).", recommendation: "Amazon Comprehend", keyReason: "NLP service that uses ML to find insights and relationships in a text." },
+      { id: 'ml8', category: 'Analytics', scenario: "Personalizing product recommendations for an e-commerce website.", recommendation: "Amazon Personalize", keyReason: "Enables developers to build applications with the same ML technology used by Amazon.com." },
+      { id: 'ml9', category: 'Analytics', scenario: "Adding a natural language chatbot to an application.", recommendation: "Amazon Lex", keyReason: "Build conversational interfaces into any application using voice and text (Powers Alexa)." },
+      { id: 'ml10', category: 'Analytics', scenario: "Forecasting future business metrics like sales or inventory levels.", recommendation: "Amazon Forecast", keyReason: "Uses ML to combine time-series data with additional variables for highly accurate forecasts." },
+      { id: 'ml11', category: 'Analytics', scenario: "Searching for answers across multiple enterprise data sources (PDFs, FAQs, Intranet).", recommendation: "Amazon Kendra", keyReason: "Intelligent search service powered by machine learning." }
     ]
   }
 ];
