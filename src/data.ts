@@ -527,30 +527,143 @@ export const BOARDS: Board[] = [
   }
 ];
 
+export const ALL_SERVICES: AWSAllService[] = [
+  // Compute
+  { name: 'EC2', category: 'Compute', description: 'Virtual servers in the cloud.', examFocus: 'Pricing models, Instance types, Spot vs On-demand' },
+  { name: 'Lambda', category: 'Compute', description: 'Serverless functions triggered by events.', examFocus: 'Execution time limits, memory allocation, triggers' },
+  { name: 'ECS', category: 'Compute', description: 'Docker container management.', examFocus: 'Task definitions, clusters, Fargate vs EC2 launch types' },
+  { name: 'EKS', category: 'Compute', description: 'Managed Kubernetes.', examFocus: 'K8s compatibility, control plane management' },
+  { name: 'Fargate', category: 'Compute', description: 'Serverless containers.', examFocus: 'No EC2 management, pricing per resource usage' },
+  { name: 'App Runner', category: 'Compute', description: 'Deploy apps directly from code/source.', examFocus: 'PaaS for containers' },
+  { name: 'Batch', category: 'Compute', description: 'Run batch computing at scale.', examFocus: 'Parallel processing, spot integration' },
+  { name: 'Elastic Beanstalk', category: 'Compute', description: 'PaaS for web apps.', examFocus: 'Easy deployment, automatic provisioning' },
+  { name: 'Lightsail', category: 'Compute', description: 'Virtual private servers for simple workloads.', examFocus: 'Flat pricing, simple setup' },
+
+  // Storage
+  { name: 'S3', category: 'Storage', description: 'Object storage scale.', examFocus: 'Storage classes, lifecycle, versioning, replication' },
+  { name: 'EBS', category: 'Storage', description: 'Block storage for EC2.', examFocus: 'SSD vs HDD, Multi-attach, Snapshots' },
+  { name: 'EFS', category: 'Storage', description: 'Shared file system (NFS).', examFocus: 'Multi-AZ, POSIX compliance, Linux' },
+  { name: 'FSx', category: 'Storage', description: 'Managed file servers (Lustre, Windows, NetApp).', examFocus: 'Windows integration, High performance HPC' },
+  { name: 'Snowball', category: 'Storage', description: 'Physical data transfer device.', examFocus: 'Offline migration, Edge computing' },
+  { name: 'Storage Gateway', category: 'Storage', description: 'Hybrid cloud storage.', examFocus: 'File Gateway, Volume Gateway, Tape Gateway' },
+
+  // Database
+  { name: 'RDS', category: 'Database', description: 'Managed relational DB.', examFocus: 'Multi-AZ, Read Replicas, engines (MySQL, Postgres, etc)' },
+  { name: 'Aurora', category: 'Database', description: 'AWS-native relational DB.', examFocus: 'Serverless, global database, high throughput' },
+  { name: 'DynamoDB', category: 'Database', description: 'NoSQL scale.', examFocus: 'Indexes (GSI/LSI), DAX, TTL, Global Tables' },
+  { name: 'ElastiCache', category: 'Database', description: 'In-memory caching.', examFocus: 'Redis vs Memcached, session storage' },
+  { name: 'Redshift', category: 'Database', description: 'Data warehouse.', examFocus: 'OLAP, Spectrum, RA3 instances' },
+  { name: 'Neptune', category: 'Database', description: 'Graph database.', examFocus: 'Social networks, recommendation engines' },
+  { name: 'DocumentDB', category: 'Database', description: 'MongoDB compatible.', examFocus: 'JSON storage' },
+
+  // Networking
+  { name: 'VPC', category: 'Networking', description: 'Isolated network.', examFocus: 'Subnets, NACLs, SGs, Peering, Endpoints' },
+  { name: 'Route 53', category: 'Networking', description: 'DNS and domain registration.', examFocus: 'Routing policies, health checks, Resolver' },
+  { name: 'CloudFront', category: 'Networking', description: 'Content Delivery Network.', examFocus: 'Edge locations, TTL, ORIGIN, SSL' },
+  { name: 'Direct Connect', category: 'Networking', description: 'Physical dedicated network line.', examFocus: 'Low latency, high security connection to on-prem' },
+  { name: 'Global Accelerator', category: 'Networking', description: 'Optimized network routing.', examFocus: 'IP Anycast, TCP/UDP performance' },
+  { name: 'Transit Gateway', category: 'Networking', description: 'Hub and spoke network connectivity.', examFocus: 'Multi-account VPC connectivity' },
+  { name: 'PrivateLink', category: 'Networking', description: 'Private VPC access to services.', examFocus: 'Zero exposure to internet' },
+
+  // Security
+  { name: 'IAM', category: 'Security', description: 'Manage access.', examFocus: 'Policies, Roles, Users, Groups, MFA' },
+  { name: 'KMS', category: 'Security', description: 'Managed encryption keys.', examFocus: 'CMKs, rotation, integrated services' },
+  { name: 'Secrets Manager', category: 'Security', description: 'Rotate and manage secrets.', examFocus: 'Rotation via Lambda, dynamic passwords' },
+  { name: 'WAF', category: 'Security', description: 'Web app firewall.', examFocus: 'Protection against L7 attacks' },
+  { name: 'Shield', category: 'Security', description: 'DDoS protection.', examFocus: 'Standard (Free) vs Advanced' },
+  { name: 'Inspector', category: 'Security', description: 'Vulnerability scanning.', examFocus: 'Software vulnerabilities, network reachability' },
+  { name: 'GuardDuty', category: 'Security', description: 'Intelligent threat detection.', examFocus: 'ML based monitoring of logs' },
+  { name: 'Macie', category: 'Security', description: 'Data privacy / PII detection.', examFocus: 'Identifying sensitive data in S3' },
+
+  // Integration
+  { name: 'SQS', category: 'Integration', description: 'Messaging queues.', examFocus: 'Decoupling, Standard vs FIFO, Visibility timeout' },
+  { name: 'SNS', category: 'Integration', description: 'Pub/sub messaging.', examFocus: 'Fan-out, push notifications' },
+  { name: 'EventBridge', category: 'Integration', description: 'Event bus.', examFocus: 'Rules, SaaS integration, decoupled architecture' },
+  { name: 'Step Functions', category: 'Integration', description: 'Workflow orchestration.', examFocus: 'State machines, long running tasks' },
+  { name: 'AppSync', category: 'Integration', description: 'Managed GraphQL.', examFocus: 'Real-time data synchronization' },
+  { name: 'API Gateway', category: 'Integration', description: 'Manage APIs.', examFocus: 'Throttling, caching, REST vs Websocket' },
+
+  // Monitoring
+  { name: 'CloudWatch', category: 'Monitoring', description: 'Performance monitoring.', examFocus: 'Metrics, Alarms, Logs Insights' },
+  { name: 'CloudTrail', category: 'Monitoring', description: 'API audit logs.', examFocus: 'Who did what, governance' },
+  { name: 'Config', category: 'Monitoring', description: 'Configuration audit.', examFocus: 'Resource history, compliance rules' },
+  { name: 'X-Ray', category: 'Monitoring', description: 'Distributed tracing.', examFocus: 'Analyzing request performance in microservices' },
+];
+
 export const DECISION_TREES: DecisionTree[] = [
   {
-    title: "S3 Storage Classes",
+    id: 'storage-logic',
+    title: "Storage Decision Matrix",
+    description: "Choose the right storage type based on access patterns and requirements.",
+    startNodeId: 'access-type',
     nodes: [
       {
-        question: "How often do you access the data?",
+        id: 'access-type',
+        question: "What is your primary access requirement?",
         options: [
-          { label: "Frequently (Standard)", result: "S3 Standard" },
-          { label: "Infrequently (IA)", result: "S3 Standard-IA" },
-          { label: "Archive (Glacier)", result: "S3 Glacier" },
-          { label: "Unknown Pattern", result: "Intelligent-Tiering" }
+          { label: "High speed LOCAL attached storage", description: "Storage for a single virtual server.", nextId: 'durability-needs' },
+          { label: "Shared file system access", description: "Accessible by multiple servers simultaneously.", nextId: 'os-type' },
+          { label: "Web URL / API based storage", description: "Object storage for assets, backups, etc.", result: "Amazon S3", isCorrect: true }
+        ]
+      },
+      {
+        id: 'os-type',
+        question: "Which operating system are the clients using?",
+        options: [
+          { label: "Linux (NFS)", result: "Amazon EFS", isCorrect: true },
+          { label: "Windows (SMB)", nextId: 'windows-needs' },
+          { label: "High Performance Compute / Lustre", result: "FSx for Lustre", isCorrect: true }
+        ]
+      },
+      {
+        id: 'windows-needs',
+        question: "Do you need native Windows behavior?",
+        options: [
+          { label: "Active Directory / NTFS", result: "FSx for Windows File Server", isCorrect: true },
+          { label: "General purpose Windows sharing", result: "FSx for Windows or S3 w/ File Gateway" }
+        ]
+      },
+      {
+        id: 'durability-needs',
+        question: "Do the files need to survive if the EC2 instance is stopped?",
+        options: [
+          { label: "Yes, persistence is critical.", result: "Amazon EBS", isCorrect: true },
+          { label: "No, temporary cache/buffers only.", result: "Instance Store", isCorrect: true }
         ]
       }
     ]
   },
   {
-    title: "Hybrid Connectivity",
+    id: 'db-logic',
+    title: "Database Selection Guide",
+    description: "Map your data model to the most performant AWS database engine.",
+    startNodeId: 'data-model',
     nodes: [
       {
-        question: "Requirement for latency and bandwidth?",
+        id: 'data-model',
+        question: "What is your data model type?",
         options: [
-          { label: "Internet / Quick Setup", result: "AWS Site-to-Site VPN" },
-          { label: "Dedicated / Predictable", result: "AWS Direct Connect" },
-          { label: "Connect 100s of VPCs", result: "AWS Transit Gateway" }
+          { label: "Relational (SQL/Schema)", description: "Joins, transactions, ACID compliance.", nextId: 'sql-scale' },
+          { label: "NoSQL (Key-Value/JSON)", description: "Extreme scale, millisecond latency.", nextId: 'nosql-type' },
+          { label: "Analytical (OLAP)", description: "Large scale reporting, multi-TB datasets.", result: "Amazon Redshift", isCorrect: true }
+        ]
+      },
+      {
+        id: 'sql-scale',
+        question: "What are your scaling requirements?",
+        options: [
+          { label: "Standard managed DB (MySQL/Postgres)", result: "Amazon RDS", isCorrect: true },
+          { label: "High performance / Enterprise / Cloud-native", result: "Amazon Aurora", isCorrect: true },
+          { label: "Variable workloads (Auto-start/stop)", result: "Aurora Serverless", isCorrect: true }
+        ]
+      },
+      {
+        id: 'nosql-type',
+        question: "How do you need to access your NoSQL data?",
+        options: [
+          { label: "Web-scale Key-Value / Document", result: "DynamoDB", isCorrect: true },
+          { label: "In-memory caching (Redis/Mem)", result: "ElastiCache", isCorrect: true },
+          { label: "Graph relationships", result: "Amazon Neptune", isCorrect: true }
         ]
       }
     ]
